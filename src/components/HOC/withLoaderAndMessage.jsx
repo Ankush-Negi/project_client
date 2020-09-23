@@ -11,7 +11,10 @@ const withLoaderAndMessage = (WrappedComponent) => function NewComponenet(props)
       </Box>
     );
   }
-  return (<WrappedComponent loader={loader} dataLength={dataLength} {...rest} />);
+  if (dataLength) {
+    return (<WrappedComponent dataLength={dataLength} {...rest} />);
+  }
+  return <center><h2>No Data</h2></center>
 };
 
 export default withLoaderAndMessage;

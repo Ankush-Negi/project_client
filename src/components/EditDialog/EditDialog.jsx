@@ -11,6 +11,9 @@ import DialogActions from '@material-ui/core/DialogActions';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import Grid from '@material-ui/core/Grid';
+import { MyContext } from '../../contexts';
+import callApi from '../../lib/utils/api';
+import * as ls from 'local-storage';
 
 const useStyles = {
   root: {
@@ -90,20 +93,44 @@ class EditDialog extends React.Component {
       });
     }
 
-    toggler=() => {
+    toggler = () => {
       this.setState((prevState) => ({
         isValid: !prevState.isValid,
       }));
     }
 
+    handleSubmit = async(openSnackBar) => {
+
+      this.toggler();
+      const { onClose, data } = this.props;
+      const { name, email } = this.state;
+      const { originalId } = data;
+      await callApi({
+        headers: {
+          authorization: ls.get('token')
+        },
+        data: {
+          dataToUpdate: {
+            name, email, id: originalId
+          },
+          id: originalId
+        }
+      },'/owner', 'put')
+      .then(response => {
+        const { message, status } = response;
+        if(status !== 'OK') {
+          openSnackBar(message, 'danger');
+        }
+        openSnackBar(message, 'success');
+        onClose();
+    });
+  }
+
     render = () => {
       const {
-        open, onClose, classes, data, onSubmit,
+        open, onClose, classes, data,
       } = this.props;
-      const {
-        name, email, isValid,
-      } = this.state;
-      const { originalId } = data;
+      const { isValid } = this.state;
       return (
         <Dialog onClose={onClose} fullWidth aria-labelledby="simple-dialog-title" open={open}>
           <DialogTitle id="simple-dialog-title">Edit User</DialogTitle>
@@ -154,18 +181,20 @@ class EditDialog extends React.Component {
               <Button onClick={onClose} color="primary">
                 Cancel
               </Button>
-              <Button
-                variant="contained"
-                disabled={!isValid}
-                color="primary"
-                onClick={() => {
-                  this.toggler();
-                  onSubmit({ name, email, originalId });
-                  onClose();
-                }}
-              >
-                Submit
-              </Button>
+              <MyContext.Consumer>
+                {(value) => (
+                  <Button
+                    variant="contained"
+                    disabled={!isValid}
+                    color="primary"
+                    onClick={async() => {
+                      await this.handleSubmit(value.openSnackBar)
+                    }}
+                  >
+                    Submit
+                  </Button>
+                )}
+              </MyContext.Consumer>
             </DialogActions>
           </DialogContent>
         </Dialog>
@@ -176,13 +205,9 @@ class EditDialog extends React.Component {
 EditDialog.propTypes = {
   onClose: PropTypes.func.isRequired,
   open: PropTypes.bool.isRequired,
-  onSubmit: PropTypes.func,
-  data: PropTypes.objectOf(PropTypes.string).isRequired,
+  data: PropTypes.object.isRequired,
   classes: PropTypes.objectOf(PropTypes.string).isRequired,
 };
 
-EditDialog.defaultProps = {
-  onSubmit: undefined,
-};
 
 export default withStyles(useStyles)(EditDialog);

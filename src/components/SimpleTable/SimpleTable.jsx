@@ -10,9 +10,6 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import TablePagination from '@material-ui/core/TablePagination';
 import Paper from '@material-ui/core/Paper';
-import Button from '@material-ui/core/Button';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import Box from '@material-ui/core/Box';
 import { withLoaderAndMessage } from '../HOC';
 
 const StyledTableCell = withStyles((theme) => ({
@@ -58,59 +55,29 @@ const useStyles = makeStyles((theme) => ({
     top: 20,
     width: 1,
   },
-  button: {
-    padding: 0,
-    border: 'none',
-    background: 'none',
-  },
 }));
 
-const TableComponent = (props) => {
+const SimpleTable = (props) => {
   const classes = useStyles();
   const [open, setOpen] = React.useState(false);
 
   const {
-    id, data, column, order, orderBy, onSort, onSelect, actions,
-    count, page, onChangePage, rowsPerPage, dataLength, loader,
+    id, data, column, order, orderBy, onSort,
+    count, page, onChangePage, rowsPerPage,
   } = props;
 
-  const tableBody = dataLength ? data.map((element) => (
+  const tableBody = data.map((element) => (
     // eslint-disable-next-line no-underscore-dangle
-    <StyledTableRow hover onClick={() => onSelect(element)} key={element._id}>
+    <StyledTableRow hover key={element._id}>
       {column.map(({ field, align, format }) => (
 
         // eslint-disable-next-line no-underscore-dangle
         <StyledTableCell key={element._id.concat(field)} align={align}>
           {format ? format(element[field]) : element[field]}
         </StyledTableCell>
-
       ))}
-      {
-        <StyledTableCell>
-          {
-            actions.map((
-              { icons, handler }, index,
-            ) => (
-              <Button
-                // eslint-disable-next-line no-underscore-dangle
-                key={element._id.concat(index)}
-                className={classes.background}
-                onClick={() => { handler(element); }}
-              >
-                {icons}
-              </Button>
-            ))
-          }
-
-        </StyledTableCell>
-      }
     </StyledTableRow>
-
-  )) : (
-    <Box paddingLeft={72}>
-      <h2> No more Users</h2>
-    </Box>
-  );
+  ));
 
   const handleSortIcon = (e) => {
     e.target.style.color = 'black';
@@ -152,17 +119,9 @@ const TableComponent = (props) => {
                   </TableSortLabel>
                 </TableCell>
               ))}
-              <TableCell />
-
             </TableRow>
           </TableHead>
-          <TableBody>
-            {
-              loader ? (
-                <center><CircularProgress /></center>
-              ) : (tableBody)
-            }
-          </TableBody>
+          <TableBody>{tableBody}</TableBody>
         </Table>
       </TableContainer>
       {count ? (
@@ -178,27 +137,24 @@ const TableComponent = (props) => {
     </>
   );
 };
-TableComponent.propTypes = {
+SimpleTable.propTypes = {
   id: propTypes.number.isRequired,
   data: propTypes.arrayOf(propTypes.object).isRequired,
   column: propTypes.arrayOf(propTypes.object).isRequired,
-  actions: propTypes.arrayOf(propTypes.object).isRequired,
   order: propTypes.oneOf(['asc', 'desc']),
   orderBy: propTypes.string,
   onSort: propTypes.func.isRequired,
-  onSelect: propTypes.func.isRequired,
   count: propTypes.number.isRequired,
   page: propTypes.number,
   onChangePage: propTypes.func.isRequired,
   rowsPerPage: propTypes.number,
   dataLength: propTypes.number.isRequired,
-  loader: propTypes.bool.isRequired,
 };
-TableComponent.defaultProps = {
+SimpleTable.defaultProps = {
   order: 'asc',
   orderBy: '',
   page: 0,
   rowsPerPage: 100,
 };
 
-export default withLoaderAndMessage(TableComponent);
+export default withLoaderAndMessage(SimpleTable);

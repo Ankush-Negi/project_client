@@ -32,8 +32,10 @@ const useStyles = makeStyles({
 
 const TraineeDetails = () => {
     const [ data, setData ] = useState({});
+    const [ loader, setLoader ] = useState(true);
     const classes = useStyles();
     useEffect(() => {
+      if(loader) {
         callApi({
             params: {
             skip: 0, limit: 20,
@@ -43,8 +45,10 @@ const TraineeDetails = () => {
         .then((response) => {
             if(data !== null && data !== undefined) {
                 setData(response);
+                setLoader(false);
             }
         });
+      }
     });
 
     return (
@@ -74,9 +78,6 @@ const TraineeDetails = () => {
                 </Typography>
                 <Typography variant="subtitle1">
                   Mobile Number - {data.mobileNumber}
-                </Typography>
-                <Typography variant="subtitle1" color="textSecondary">
-                  Hobby - {data.hobbies}
                 </Typography>
                 </CardContent>
             </div>

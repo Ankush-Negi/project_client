@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { withStyles } from '@material-ui/core/styles';
-import propTypes from 'prop-types';
-import EditIcon from '@material-ui/icons/Edit';
-import DeleteIcon from '@material-ui/icons/Delete';
 import Tooltip from '@material-ui/core/Tooltip';
 import Fab from '@material-ui/core/Fab';
 import AddIcon from '@material-ui/icons/Add';
+import propTypes from 'prop-types';
+import EditIcon from '@material-ui/icons/Edit';
+import DeleteIcon from '@material-ui/icons/Delete';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormGroup from '@material-ui/core/FormGroup';
+import Switch from '@material-ui/core/Switch';
 import {
-  AddDialog, EditDialog, RemoveDialog,
+  AddProdDialog, EditProdDialog, RemoveProdDialog,
 } from '../../components';
-import { TableComponent } from '../../components';
+import { TableComponent, SimpleTable } from '../../components';
 import callApi from '../../lib/utils/api';
 import ls from 'local-storage';
 
@@ -20,8 +23,9 @@ const useStyles = {
   },
 };
 
-function UserList(props) {
+function ProductList(props) {
   const [ state, setState ] = useState({
+    all: false,
     open: false,
     order: 'asc',
     orderBy: 'Date',
@@ -44,42 +48,44 @@ async function handleClickOpen() {
 }
 
 async function handleClose() {
-  setState({...state, open: false, editOpen: false, removeOpen: false });
-  const { page, rowsPerPage } = state;
+  await setState({...state, open: false, editOpen: false, removeOpen: false });
   await handleTableData({
-    params: { skip: page * rowsPerPage, limit: rowsPerPage },
+    params: { skip: page * rowsPerPage, limit: rowsPerPage, all },
     headers: { Authorization: ls.get('token') },
-  }, '/owner', 'Get');
+  }, '/product', 'get');
 }
 
 async function handleOnSubmitDelete(values) {
   setState({ ...state, open: false, removeOpen: false, loader: true });
-  const { page, rowsPerPage, count } = state;
+  const { page, rowsPerPage, count, all } = state;
   if (count - page * rowsPerPage !== 1) {
     handleTableData({
       params: {
         skip: page * rowsPerPage,
         limit: rowsPerPage,
+        all,
       },
       headers: { Authorization: ls.get('token') },
-    }, '/owner', 'Get');
+    }, '/product', 'Get');
   } else if (page !== 0) {
     setState({...state, page: page - 1 });
     handleTableData({
       params: {
         skip: (page - 1) * rowsPerPage,
         limit: rowsPerPage,
+        all,
       },
       headers: { Authorization: ls.get('token') },
-    }, '/owner', 'Get');
+    }, '/product', 'Get');
   } else {
     handleTableData({
       params: {
         skip: (page) * rowsPerPage,
         limit: rowsPerPage,
+        all,
       },
       headers: { Authorization: ls.get('token') },
-    }, '/owner', 'Get');
+    }, '/product', 'Get');
   }
 }
 
@@ -104,28 +110,25 @@ async function handleRemoveDialogOpen(values) {
 
 async function handleChangePage(event, newPage) {
   const { rowsPerPage, status } = state;
-  if (status === 'OK')  await setState({ ...state, page: newPage, loader: true });
-  return await handleTableData({
+  return (status === 'OK') ? (setState({ ...state, page: newPage, loader: true }),
+  handleTableData({
     params: {
-      skip: page * rowsPerPage,
+      skip: newPage * rowsPerPage,
       limit: rowsPerPage,
     },
     headers: { Authorization: ls.get('token') },
-  }, '/owner', 'Get');
+  }, '/product', 'get')
+  ) : '' ;
 }
 
 async function handleTableData(data, url, method) {
   await callApi(data, url, method).then((response) => {
-    const { status, message, data } = response;
-    const { records, count } = data;
+    const { records, count } = response.data;
     setState({
       ...state,
       tableData: records,
-      loader: false,
       tableDataLength: records.length,
       count,
-      status,
-      message,
       open: false,
       editOpen: false,
       removeOpen: false,
@@ -133,34 +136,69 @@ async function handleTableData(data, url, method) {
   });
 }
 
+async function handleProductChange() {
+  await setState({
+    ...state,
+    all: !all,
+    loader: true,
+  });
+}
+
 useEffect(() => {
+  const { page , rowsPerPage, all } = state;
   if( loader ) {
-    handleTableData({
-      params: {
-        skip: page * rowsPerPage,
-        limit: rowsPerPage,
-      },
-      headers: {
-        authorization: ls.get('token')
-      }
-    },'/owner','get');
+  callApi({
+    params: {
+      skip: rowsPerPage * page,
+      limit: rowsPerPage,
+      all,
+    },
+    headers: { authorization: ls.get('token') }
+  },'/product','get')
+  .then(response => {
+    const { status, message, data } = response;
+    const { records, count } = data;
+    setState({
+      ...state,
+      tableData: records,
+      tableDataLength: records.length,
+      message,
+      status,
+      count,
+      loader: false,
+    })
+    }).catch(err => {
+    setState({...state, loader: true})
+    });
   }
 });
 
   const { classes } = props;
   const {
-    open, order, orderBy, page, editOpen, rowData, removeOpen,
+    open, order, orderBy, page, editOpen, rowData, removeOpen, all,
     rowsPerPage, tableData, count, loader, tableDataLength,
   } = state;
   return (
     <>
       <div className={classes.button}>
-        <Tooltip title="Add" aria-label="add">
+      <FormGroup>
+        <FormControlLabel
+          label={all ? 'own' : 'all'}
+          control={
+            <Switch onChange={handleProductChange} />
+          }
+        />
+      </FormGroup>
+      </div>
+      {!all && (
+      <div className={classes.button}>
+      <Tooltip title="Add" aria-label="add">
           <Fab color="primary">
             <AddIcon onClick={handleClickOpen}/>
           </Fab>
         </Tooltip>
-      </div>
+      </div>)}
+      {!all && (      
       <TableComponent
         id={page}
         data={tableData}
@@ -169,25 +207,27 @@ useEffect(() => {
           label: 'Name',
         },
         {
-          field: 'email',
-          label: 'Email-Address',
-          format: (value) => value && value.toUpperCase(),
-
+          field: 'price',
+          label: 'Price',
+        },
+        {
+            field: 'description',
+            label: 'Description',
         },
         {
           field: 'createdAt',
           label: 'Date',
           align: 'right',
         }]}
-
         actions={[{
           icons: <EditIcon />,
           handler: handleEditDialogOpen,
+          align: 'right',
         },
         {
           icons: <DeleteIcon />,
           handler: handleRemoveDialogOpen,
-
+          align: 'right',
         }]}
 
         order={order}
@@ -199,19 +239,51 @@ useEffect(() => {
         rowsPerPage={rowsPerPage}
         loader={loader}
         dataLength={tableDataLength}
-      />
+      />)}
+
+      {all && (      
+      <SimpleTable
+        id={page}
+        data={tableData}
+        column={[{
+          field: 'name',
+          label: 'Name',
+        },
+        {
+          field: 'price',
+          label: 'Price',
+        },
+        {
+          field: 'description',
+          label: 'Description',
+        },
+        {
+          field: 'createdAt',
+          label: 'Date',
+        }]}
+
+        order={order}
+        orderBy={orderBy}
+        onSort={handleSort}
+        count={count}
+        page={page}
+        onChangePage={handleChangePage}
+        rowsPerPage={rowsPerPage}
+        loader={loader}
+        dataLength={tableDataLength}
+      />)}
                 
-      <AddDialog
+      <AddProdDialog
         open={open}
         onClose={handleClose}
       />
 
-      <EditDialog
+      <EditProdDialog
         open={editOpen}
         onClose={handleClose}
         data={rowData}
       />
-      <RemoveDialog
+      <RemoveProdDialog
         open={removeOpen}
         onClose={handleClose}
         onSubmit={handleOnSubmitDelete}
@@ -220,8 +292,8 @@ useEffect(() => {
     </>
   );
 }
-export default withStyles(useStyles, { withTheme: true })(UserList);
+export default withStyles(useStyles, { withTheme: true })(ProductList);
 
-UserList.propTypes = {
+ProductList.propTypes = {
   classes: propTypes.objectOf(propTypes.any).isRequired,
 };

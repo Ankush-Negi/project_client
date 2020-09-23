@@ -13,6 +13,7 @@ import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import PropTypes from 'prop-types';
 import { ValidationSchema } from '../../helper';
 import { MyContext } from '../../contexts';
 import callApi from '../../lib/utils/api';
@@ -51,7 +52,6 @@ export default function SignUp(props) {
     dob: "",
     role: "",
     mobileNumber: 0,
-    hobbies: "",
     password: "",
     confirmPassword: "",
     isValid: false,
@@ -65,7 +65,6 @@ export default function SignUp(props) {
       Dob: true,
       Role: true,
       MobileNumber: true,
-      Hobby: true,
       ConfirmPassword: true,
     },
   })
@@ -87,6 +86,7 @@ export default function SignUp(props) {
   }
 
   async function handleLoader(data, openSnackBar) {
+    console.log('data');
       await toggler();
       const { message, status } = data;
       const { history } = props;
@@ -94,13 +94,12 @@ export default function SignUp(props) {
       if (status === 'OK') {
         history.push('/login')
       }
-      openSnackBar(message, status);
+      openSnackBar(message, 'success');
   }
-
 
    function hasError(field) {
     const {
-      allErrors, touch, email, password, name, address, dob, role, mobileNumber, hobbies, confirmPassword,
+      allErrors, touch, email, password, name, address, dob, role, mobileNumber, confirmPassword,
     } = state;
     ValidationSchema.validateAt(field, {
       Email: email,
@@ -110,7 +109,6 @@ export default function SignUp(props) {
       Dob: dob,
       Role: role,
       MobileNumber: mobileNumber,
-      Hobby: hobbies,
       ConfirmPassword: confirmPassword,
     }).then(() => {
       if (allErrors[field] && !touch[field]) {
@@ -133,7 +131,7 @@ export default function SignUp(props) {
       }
       return true;
     });
-  };
+  }
 
   function getError(field) {
     const {
@@ -163,7 +161,7 @@ export default function SignUp(props) {
       ...state,
       touch
     });
-  };
+  }
 
   const {
     loader,
@@ -174,7 +172,6 @@ export default function SignUp(props) {
     dob,
     role,
     mobileNumber,
-    hobbies,
     password,
   } = state;
   return (
@@ -259,7 +256,7 @@ export default function SignUp(props) {
                 fullWidth
                 name="role"
                 onBlur={() => isTouched('Role')} 
-                error={getError('Role')}
+                error={!!getError('Role')}
               >
                 <MenuItem value="">
                   <em>None</em>
@@ -269,21 +266,6 @@ export default function SignUp(props) {
                 <MenuItem value="product-manager">Product Manager</MenuItem>
               </Select>
               <p style={customStyle}>{getError('Role')}</p>
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                variant="outlined"
-                required
-                fullWidth
-                id="hobbies"
-                label="Hobby"
-                value={state.hobbies}
-                name="hobbies"
-                error={!!getError('Hobby')}
-                helperText={getError('Hobby')}
-                onChange={handleChange}
-                onBlur={() => isTouched('Hobby')}
-              />
             </Grid>
             <Grid item xs={12}>
               <TextField
@@ -342,7 +324,7 @@ export default function SignUp(props) {
                 className={classes.submit}
                 disabled={!isValid}
                 onClick={async () => {
-                  handleLoader(await callApi({ data: { email, password, name, address, dob, role, mobileNumber, hobbies } },
+                  handleLoader(await callApi({ data: { email, password, name, address, dob, role, mobileNumber } },
                     '/user/signup', 'post'), value.openSnackBar);
                 }}
               >
@@ -363,3 +345,7 @@ export default function SignUp(props) {
     </Container>
   );
 }
+
+SignUp.propTypes = {
+  history: PropTypes.objectOf(PropTypes.any).isRequired,
+};

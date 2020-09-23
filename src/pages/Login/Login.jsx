@@ -79,11 +79,8 @@ class LoginPage extends React.Component {
     });
   }
 
-  handleLoader = async (openSnackBar) => {
-    const { email, password } = this.state;
+  handleLoader = async (data, openSnackBar) => {
     await this.toggler();
-    const data = await callApi({ data: { email, password } }, '/user/login', 'post');
-    console.log('inside handle loader', data);
     const { message, status, data: token } = await data;
     const { history } = this.props;
     await this.setState({ loader: false, isValid: true }, async() => (status === 'OK' ? (
@@ -142,6 +139,8 @@ class LoginPage extends React.Component {
   render = () => {
     const { classes } = this.props;
     const {
+      email,
+      password,
       loader,
       isValid,
     } = this.state;
@@ -201,7 +200,7 @@ class LoginPage extends React.Component {
                   disabled={!isValid}
                   color="primary"
                   onClick={async () => {
-                    this.handleLoader(value.openSnackBar);
+                    this.handleLoader(await callApi({ data: { email, password } }, '/user/login', 'post'), value.openSnackBar);
                   }}
                 >
                   <span>{loader ? <CircularProgress size={20} /> : ''}</span>
