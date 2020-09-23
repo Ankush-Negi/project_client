@@ -1,0 +1,1 @@
+export { default as AddProdDialog } from './AddProdDialog';
