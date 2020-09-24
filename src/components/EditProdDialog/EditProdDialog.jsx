@@ -115,9 +115,12 @@ class EditProdDialog extends React.Component {
         headers: {
           authorization: ls.get('token')
         },
-        data: {
-          name, price, description, id: originalId
-        }
+	      data: {
+	        id: originalId,
+	        dataToUpdate: {
+            name, price, description,
+         },
+	}
       },'/product', 'put')
       .then(response => {
         const { message, status } = response;
