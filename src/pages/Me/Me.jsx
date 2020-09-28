@@ -76,9 +76,6 @@ const TraineeDetails = () => {
                 <Typography variant="subtitle1">
                   Date of Birth - {data.dob}
                 </Typography>
-                <Typography variant="subtitle1">
-                  Mobile Number - {data.mobileNumber}
-                </Typography>
                 </CardContent>
             </div>
           </Card>

@@ -51,7 +51,6 @@ export default function SignUp(props) {
     address: "",
     dob: "",
     role: "",
-    mobileNumber: 0,
     password: "",
     confirmPassword: "",
     isValid: false,
@@ -64,7 +63,6 @@ export default function SignUp(props) {
       Address: true,
       Dob: true,
       Role: true,
-      MobileNumber: true,
       ConfirmPassword: true,
     },
   })
@@ -99,7 +97,7 @@ export default function SignUp(props) {
 
    function hasError(field) {
     const {
-      allErrors, touch, email, password, name, address, dob, role, mobileNumber, confirmPassword,
+      allErrors, touch, email, password, name, address, dob, role, confirmPassword,
     } = state;
     ValidationSchema.validateAt(field, {
       Email: email,
@@ -108,7 +106,6 @@ export default function SignUp(props) {
       Address: address,
       Dob: dob,
       Role: role,
-      MobileNumber: mobileNumber,
       ConfirmPassword: confirmPassword,
     }).then(() => {
       if (allErrors[field] && !touch[field]) {
@@ -171,7 +168,6 @@ export default function SignUp(props) {
     address,
     dob,
     role,
-    mobileNumber,
     password,
   } = state;
   return (
@@ -272,21 +268,6 @@ export default function SignUp(props) {
                 variant="outlined"
                 required
                 fullWidth
-                id="mobileNumber"
-                label="Mobile Number"
-                value={state.mobileNumber}
-                name="mobileNumber"
-                error={!!getError('MobileNumber')}
-                helperText={getError('MobileNumber')}
-                onChange={handleChange}
-                onBlur={() => isTouched('MobileNumber')}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                variant="outlined"
-                required
-                fullWidth
                 name="password"
                 label="Password"
                 type="password"
@@ -324,7 +305,7 @@ export default function SignUp(props) {
                 className={classes.submit}
                 disabled={!isValid}
                 onClick={async () => {
-                  handleLoader(await callApi({ data: { email, password, name, address, dob, role, mobileNumber } },
+                  handleLoader(await callApi({ data: { email, password, name, address, dob, role } },
                     '/user/signup', 'post'), value.openSnackBar);
                 }}
               >
