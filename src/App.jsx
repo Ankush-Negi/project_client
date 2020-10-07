@@ -25,8 +25,6 @@ function App() {
           <PrivateLayoutRoute exact path="/home/owner" component={UserList} />
           <PrivateLayoutRoute exact path="/home/product-manager" component={ProductList} />
           <PrivateLayoutRoute exact path="/home/user" component={OrderList} />
-          {/* <PrivateLayoutRoute exact path="/children-demo" component={ChildrenDemo} />
-          <PrivateLayoutRoute exact path="/input-demo" component={InputDemo} />  */}
           <PrivateLayoutRoute component={NoMatch} />
         </Switch>
       </Router>

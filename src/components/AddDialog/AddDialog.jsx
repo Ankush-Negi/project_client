@@ -14,7 +14,6 @@ import EmailIcon from '@material-ui/icons/Email';
 import ApartmentIcon from '@material-ui/icons/Apartment';
 import DateRangeIcon from '@material-ui/icons/DateRange';
 import AssignmentIndIcon from '@material-ui/icons/AssignmentInd';
-import PhoneIcon from '@material-ui/icons/Phone';
 import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import { MyContext } from '../../contexts';

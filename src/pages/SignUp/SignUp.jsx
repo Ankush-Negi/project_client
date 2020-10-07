@@ -258,7 +258,6 @@ export default function SignUp(props) {
                   <em>None</em>
                 </MenuItem>
                 <MenuItem value="user">User</MenuItem>
-                <MenuItem value="owner">Owner</MenuItem>
                 <MenuItem value="product-manager">Product Manager</MenuItem>
               </Select>
               <p style={customStyle}>{getError('Role')}</p>
